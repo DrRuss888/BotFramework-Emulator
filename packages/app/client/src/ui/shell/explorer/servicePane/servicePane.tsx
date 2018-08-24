@@ -50,7 +50,7 @@ export interface ServicePaneState {
 
 export abstract class ServicePane<T extends ServicePaneProps, S extends ServicePaneState = ServicePaneState>
   extends Component<T, S> {
-
+  public static styles = styles;
   protected abstract onLinkClick: (event: SyntheticEvent<HTMLLIElement>) => void; // bound
   protected abstract onAddIconClick: (event: SyntheticEvent<HTMLButtonElement>) => void; // bound
   protected abstract onSortClick: (event: SyntheticEvent<HTMLButtonElement>) => void; // bound

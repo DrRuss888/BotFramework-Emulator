@@ -59,14 +59,13 @@ export interface ServicesExplorerProps extends ServicePaneProps {
 export class ServicesExplorer extends ServicePane<ServicesExplorerProps> {
   public state = {} as ServicesExplorerProps;
 
-  public static getDerivedStateFromProps
-  (newProps: ServicesExplorerProps, existingProps: ServicesExplorerProps): ServicesExplorerProps {
-    if (!Object.keys(existingProps).length) {
-      return newProps;
+  public static getDerivedStateFromProps<T extends ServicesExplorerProps>(newProps: T, prevState: T): T {
+    if (!Object.keys(prevState).length) {
+      return prevState;
     }
     const { services: newServices, sortCriteria = 'name' } = newProps;
-    const { services = [] } = existingProps;
-    const state = { ...newProps };
+    const { services = [] } = newProps;
+    const state = { ...newProps as any };
     if (newServices.length > services.length) {
       state.expanded = true;
       state.toAnimate = {};
@@ -92,22 +91,7 @@ export class ServicesExplorer extends ServicePane<ServicesExplorerProps> {
   }
 
   protected get links() {
-    const { services = [], toAnimate = {} } = this.state;
-    return services.map((service, index) => {
-      let label = service.name;
-      if ('version' in service) {
-        label += `, v${(service as any).version}`;
-      }
-      return (
-        <li
-          key={ index }
-          className={ `${styles.link} ${toAnimate[service.id] ? styles.animateHighlight : ''} ` }
-          onClick={ this.onLinkClick }
-          data-index={ index }>
-          { label } <span>- { serviceTypeLabels[service.type] }</span>
-        </li>
-      );
-    });
+    return (this.props.services || []).map(this.createLink);
   }
 
   protected onContextMenuOverLiElement(li: HTMLLIElement) {
@@ -140,5 +124,30 @@ export class ServicesExplorer extends ServicePane<ServicesExplorerProps> {
       pickerComponent: ConnectedServicePickerContainer,
       progressIndicatorComponent: ProgressIndicatorContainer
     });
+  }
+
+  private createLink = (service: IConnectedService, index: number): JSX.Element => {
+    const { toAnimate = {} } = this.state;
+    let label = service.name;
+    if ('version' in service) {
+      label += `, v${(service as any).version}`;
+    }
+    let subList;
+    if ('serviceIds' in service) {
+      const serviceIdReg = new RegExp(`^(${(service as any).serviceIds.join('|')})$`); // RegExp(/^(1234|5678)$/)
+      const childServices = this.props.services.filter(childService => serviceIdReg.test(childService.id));
+      const children = childServices.map(this.createLink);
+      subList = <ul className={`${ServicePane.styles.servicePaneList} ${styles.sublist}`}>{ children }</ul>;
+    }
+    return (
+      <li
+        key={ index }
+        className={ `${styles.link} ${toAnimate[service.id] ? styles.animateHighlight : ''} ` }
+        onClick={ this.onLinkClick }
+        data-index={ index }>
+        { label } <span>- { serviceTypeLabels[service.type] }</span>
+        { subList }
+      </li>
+    );
   }
 }

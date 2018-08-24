@@ -1,5 +1,10 @@
 ul > li.link::before {
   content: "🔗";
+  font-size: 10px;
+}
+
+.sublist {
+  padding-left: 20px;
 }
 
 @keyframes highlight {

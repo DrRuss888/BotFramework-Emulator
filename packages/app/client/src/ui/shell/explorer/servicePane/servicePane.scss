@@ -80,6 +80,10 @@
       color: var(--neutral-7);
     }
 
+    &::after {
+      content: "";
+    }
+
     &::before {
       content: "";
       opacity: .5;
